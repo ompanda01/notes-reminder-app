@@ -36,14 +36,25 @@ def serve_frontend():
 def health_check():
     return {"status": "ok", "message": "Smart Notes + Reminder API is running"}
 
+
 @app.post("/notes", response_model=NoteResponse, status_code=201)
 def create_note(note_in: NoteCreate, db: Session = Depends(get_db)):
-    priority, tag = infer_priority_and_tag(
-        title=note_in.title,
-        content=note_in.content,
-        priority=note_in.priority,
-        tag=note_in.tag,
+    try:
+        inferred_priority, inferred_tag = infer_priority_and_tag(note_in.title, note_in.content)
+    except TypeError:
+        inferred_priority, inferred_tag = infer_priority_and_tag(note_in.title)
+
+    priority = (
+        inferred_priority
+        if (not note_in.priority or note_in.priority == "Medium")
+        else note_in.priority
     )
+    tag = (
+        inferred_tag
+        if (not note_in.tag or note_in.tag == "General")
+        else note_in.tag
+    )
+
     note = Note(
         title=note_in.title,
         content=note_in.content,
