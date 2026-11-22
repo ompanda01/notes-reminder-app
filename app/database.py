@@ -9,7 +9,15 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set in .env")
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+connect_args = {}
+if "aivencloud.com" in DATABASE_URL:
+    connect_args["ssl"] = {"ssl_mode": "REQUIRED"}
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args=connect_args,
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -20,3 +28,4 @@ def get_db():
         yield db
     finally:
         db.close()
+
