@@ -35,3 +35,74 @@ def serve_frontend():
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "Smart Notes + Reminder API is running"}
+
+@app.post("/notes", response_model=NoteResponse, status_code=201)
+def create_note(note_in: NoteCreate, db: Session = Depends(get_db)):
+    priority, tag = infer_priority_and_tag(
+        title=note_in.title,
+        content=note_in.content,
+        priority=note_in.priority,
+        tag=note_in.tag,
+    )
+    note = Note(
+        title=note_in.title,
+        content=note_in.content,
+        priority=priority,
+        tag=tag,
+        reminder_at=note_in.reminder_at,
+    )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@app.get("/notes", response_model=List[NoteResponse])
+def list_notes(
+    priority: Optional[str] = Query(default=None),
+    is_completed: Optional[bool] = Query(default=None),
+    tag: Optional[str] = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Note)
+    if priority:
+        query = query.filter(Note.priority == priority)
+    if is_completed is not None:
+        query = query.filter(Note.is_completed == is_completed)
+    if tag:
+        query = query.filter(Note.tag == tag)
+    return query.order_by(Note.id.desc()).all()
+
+
+@app.get("/reminders/upcoming", response_model=List[NoteResponse])
+def upcoming_reminders(within_hours: int = 24, db: Session = Depends(get_db)):
+    now = datetime.utcnow()
+    return (
+        db.query(Note)
+        .filter(Note.reminder_at.isnot(None), Note.reminder_at >= now, Note.is_completed == False)
+        .order_by(Note.reminder_at.asc())
+        .all()
+    )
+
+
+@app.patch("/notes/{note_id}", response_model=NoteResponse)
+def update_note(note_id: int, note_in: NoteUpdate, db: Session = Depends(get_db)):
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    update_data = note_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(note, field, value)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@app.delete("/notes/{note_id}")
+def delete_note(note_id: int, db: Session = Depends(get_db)):
+    note = db.query(Note).filter(Note.id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    db.delete(note)
+    db.commit()
+    return {"deleted": True, "id": note_id}
