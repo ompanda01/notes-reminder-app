@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Notes + Reminder</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: #0f172a; color: #e2e8f0; padding: 24px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.95rem; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    label { display: block; font-size: 0.82rem; color: #cbd5e1; margin-bottom: 4px; }
+    input, textarea, select, button {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #475569;
+      background: #0f172a; color: #f8fafc; font-size: 0.92rem;
+    }
+    textarea { min-height: 76px; resize: vertical; }
+    button { cursor: pointer; font-weight: 600; transition: 0.15s ease; }
+    button.primary { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    button.primary:hover { background: #2563eb; }
+    button.secondary { background: #334155; }
+    button.secondary:hover { background: #475569; }
+    button.danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+    button.danger:hover { background: #b91c1c; }
+    button.success { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filters select, .filters button { width: auto; padding: 8px 12px; }
+    .note-item {
+      background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+      padding: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 12px;
+    }
+    .note-item.completed { opacity: 0.65; }
+    .note-item.completed .note-title { text-decoration: line-through; }
+    .note-title { font-size: 1.05rem; font-weight: 600; margin: 0 0 6px; }
+    .note-content { color: #cbd5e1; font-size: 0.9rem; margin: 0 0 8px; white-space: pre-wrap; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.78rem; color: #94a3b8; }
+    .badge { padding: 2px 8px; border-radius: 999px; background: #1e293b; border: 1px solid #475569; color: #e2e8f0; }
+    .badge.High { border-color: #ef4444; color: #fca5a5; }
+    .badge.Medium { border-color: #f59e0b; color: #fcd34d; }
+    .badge.Low { border-color: #22c55e; color: #86efac; }
+    .actions { display: flex; flex-direction: column; gap: 6px; min-width: 110px; }
+    .actions button { padding: 6px 10px; font-size: 0.82rem; }
+    .status-msg { margin-top: 10px; font-size: 0.88rem; color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart Notes + Reminder</h1>
+    <div class="subtitle">FastAPI + MySQL UI • Auto priority & tag powered by AI helper</div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">Create Note / Reminder</h3>
+      <form id="noteForm">
+        <div class="grid">
+          <div>
+            <label for="title">Title *</label>
+            <input id="title" type="text" required maxlength="150" placeholder="e.g., Pay electricity bill" />
+          </div>
+          <div>
+            <label for="priority">Priority</label>
+            <select id="priority">
+              <option value="Medium" selected>Medium (Auto AI if Medium)</option>
+              <option value="High">High</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label for="tag">Tag</label>
+            <input id="tag" type="text" maxlength="50" value="General" placeholder="General (Auto AI if General)" />
+          </div>
+          <div>
+            <label for="reminder_at">Reminder Date & Time</label>
+            <input id="reminder_at" type="datetime-local" />
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <label for="content">Content</label>
+          <textarea id="content" placeholder="Optional details..."></textarea>
+        </div>
+        <div style="margin-top:12px; max-width:220px;">
+          <button type="submit" class="primary">Save Note</button>
+        </div>
+        <div id="statusMsg" class="status-msg"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <h3 style="margin:0;">Notes & Reminders</h3>
+        <div class="filters">
+          <select id="filterPriority">
+            <option value="">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select id="filterCompleted">
+            <option value="">All Status</option>
+            <option value="false">Pending</option>
+            <option value="true">Completed</option>
+          </select>
+          <input id="filterTag" type="text" placeholder="Filter tag..." style="width:130px; padding:8px 10px;" />
+          <button type="button" class="secondary" onclick="loadNotes()">Apply</button>
+          <button type="button" class="secondary" onclick="loadUpcomingReminders()">Upcoming (24h)</button>
+        </div>
+      </div>
+      <div id="notesList">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById("statusMsg");
+      el.textContent = msg;
+      el.style.color = isError ? "#fca5a5" : "#93c5fd";
+    }
+
+    async function loadNotes() {
+      const priority = document.getElementById("filterPriority").value;
+      const isCompleted = document.getElementById("filterCompleted").value;
+      const tag = document.getElementById("filterTag").value.trim();
+
+      const params = new URLSearchParams();
+      if (priority) params.append("priority", priority);
+      if (isCompleted !== "") params.append("is_completed", isCompleted);
+      if (tag) params.append("tag", tag);
+
+      const url = `${API_BASE}/notes${params.toString() ? "?" + params.toString() : ""}`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const notes = await res.json();
+        renderNotes(notes);
+      } catch (err) {
+        document.getElementById("notesList").innerHTML =
+          `<p style="color:#fca5a5;">Backend connect nahi ho pa raha (${err.message}). Check karo ki uvicorn chal raha hai ya nahi.</p>`;
+      }
+    }
+
+    async function loadUpcomingReminders() {
+      try {
+        const res = await fetch(`${API_BASE}/reminders/upcoming?within_hours=24`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const notes = await res.json();
+        renderNotes(notes, "Upcoming reminders (next 24h):");
+      } catch (err) {
+        setStatus(`Error loading reminders: ${err.message}`, true);
+      }
+    }
+
+    function renderNotes(notes, headingPrefix = "") {
+      const container = document.getElementById("notesList");
+      if (!notes.length) {
+        container.innerHTML = `<p style="color:#94a3b8;">${headingPrefix ? headingPrefix + " " : ""}Koi notes nahi mile.</p>`;
+        return;
+      }
+
+      const headerHtml = headingPrefix ? `<p style="color:#93c5fd; margin-top:0;">${headingPrefix}</p>` : "";
+      container.innerHTML = headerHtml + notes.map(note => {
+        const reminderText = note.reminder_at
+          ? `Reminder: ${new Date(note.reminder_at).toLocaleString()}`
+          : "No reminder";
+
+        return `
+          <div class="note-item ${note.is_completed ? "completed" : ""}">
+            <div>
+              <h4 class="note-title">${escapeHtml(note.title)}</h4>
+              ${note.content ? `<p class="note-content">${escapeHtml(note.content)}</p>` : ""}
+              <div class="meta">
+                <span class="badge ${note.priority}">${note.priority}</span>
+                <span class="badge">#${escapeHtml(note.tag || "General")}</span>
+                <span>${reminderText}</span>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="${note.is_completed ? "secondary" : "success"}" onclick="toggleComplete(${note.id}, ${!note.is_completed})">
+                ${note.is_completed ? "Undo" : "Done"}
+              </button>
+              <button class="danger" onclick="deleteNote(${note.id})">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("noteForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim() || null;
+      const priority = document.getElementById("priority").value;
+      const tag = document.getElementById("tag").value.trim() || "General";
+      const reminderRaw = document.getElementById("reminder_at").value;
+      const reminder_at = reminderRaw ? new Date(reminderRaw).toISOString() : null;
+
+      try {
+        const res = await fetch(`${API_BASE}/notes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, content, priority, tag, reminder_at })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail ? JSON.stringify(errData.detail) : `HTTP ${res.status}`);
+        }
+        e.target.reset();
+        document.getElementById("tag").value = "General";
+        setStatus("Note save ho gaya!");
+        loadNotes();
+      } catch (err) {
+        setStatus(`Create failed: ${err.message}`, true);
+      }
+    });
+
+    async function toggleComplete(id, nextState) {
+      try {
+        const res = await fetch(`${API_BASE}/notes/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ is_completed: nextState })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        loadNotes();
+      } catch (err) {
+        setStatus(`Update failed: ${err.message}`, true);
+      }
+    }
+
+    async function deleteNote(id) {
+      try {
+        const res = await fetch(`${API_BASE}/notes/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setStatus("Note delete ho gaya.");
+        loadNotes();
+      } catch (err) {
+        setStatus(`Delete failed: ${err.message}`, true);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    loadNotes();
+  </script>
+</body>
+</html>
