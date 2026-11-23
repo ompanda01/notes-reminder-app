@@ -61,6 +61,7 @@ def create_note(note_in: NoteCreate, db: Session = Depends(get_db)):
         priority=priority,
         tag=tag,
         reminder_at=note_in.reminder_at,
+        is_pinned=note_in.is_pinned,
     )
     db.add(note)
     db.commit()
@@ -72,6 +73,7 @@ def create_note(note_in: NoteCreate, db: Session = Depends(get_db)):
 def list_notes(
     priority: Optional[str] = Query(default=None),
     is_completed: Optional[bool] = Query(default=None),
+    is_pinned: Optional[bool] = Query(default=None),
     tag: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
 ):
@@ -80,9 +82,11 @@ def list_notes(
         query = query.filter(Note.priority == priority)
     if is_completed is not None:
         query = query.filter(Note.is_completed == is_completed)
+    if is_pinned is not None:
+        query = query.filter(Note.is_pinned == is_pinned)
     if tag:
         query = query.filter(Note.tag == tag)
-    return query.order_by(Note.id.desc()).all()
+    return query.order_by(Note.is_pinned.desc(), Note.id.desc()).all()
 
 
 @app.get("/reminders/upcoming", response_model=List[NoteResponse])

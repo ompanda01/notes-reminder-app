@@ -3,6 +3,9 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 from app.database import Base
 
 
+
+
+
 class Note(Base):
     __tablename__ = "notes"
 
@@ -14,3 +17,6 @@ class Note(Base):
     tag = Column(String(50), default="General", nullable=False)
     is_completed = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    is_pinned = Column(Boolean , default=False, nullable=False)
+    
+

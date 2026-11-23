@@ -30,3 +30,11 @@ All notable changes to `notes-reminder-app` are documented in this file.
 - Updated UI success messages to English.
 - Configured `.gitignore` to exclude secrets (`.env`), virtual environments (`.venv/`), and cache/system files (`__pycache__/`, `.DS_Store`).
 - Resolved Git push/synchronization workflow issues.
+
+## [Unreleased] - 2026-11-23
+
+### Added
+- **Pinned Notes Persistence (`is_pinned`)**: Added `is_pinned` boolean column (`NOT NULL DEFAULT FALSE`) to the `notes` table in Aiven MySQL and mapped it in the SQLAlchemy `Note` model.
+- **API Pinning & Filtering**: Updated `NoteCreate`, `NoteUpdate`, and `NoteResponse` Pydantic schemas, `POST /notes`, `GET /notes` (`is_pinned` query filter), and `PATCH /notes/{note_id}` to support pinning and unpinning notes.
+- **Top Sorting**: Sorted note listings with pinned notes prioritized first (`ORDER BY is_pinned DESC` on the backend and pinned-first sorting in the frontend list view).
+- **Frontend Pin Controls**: Added a `Pinned` view with count in the sidebar, a `Pin / Pinned` action button in the editor topbar, a `pin_to_top` checkbox in the note properties panel, and a `PIN` badge on pinned note cards.

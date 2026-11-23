@@ -9,6 +9,7 @@ class NoteCreate(BaseModel):
     reminder_at: Optional[datetime] = None
     priority: str = Field(default="Medium", pattern="^(Low|Medium|High)$")
     tag: str = Field(default="General", max_length=50)
+    is_pinned: bool = False
 
 
 class NoteUpdate(BaseModel):
@@ -18,6 +19,7 @@ class NoteUpdate(BaseModel):
     priority: Optional[str] = Field(default=None, pattern="^(Low|Medium|High)$")
     tag: Optional[str] = Field(default=None, max_length=50)
     is_completed: Optional[bool] = None
+    is_pinned: Optional[bool] = None
 
 
 class NoteResponse(BaseModel):
@@ -30,4 +32,7 @@ class NoteResponse(BaseModel):
     priority: str
     tag: str
     is_completed: bool
+    is_pinned: bool
     created_at: datetime
+
+    
