@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Folio — Smart Notes & Reminders</title>
+  <title>Cadence — Smart Notes & Reminders</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet">
@@ -241,11 +241,11 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1.3fr;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
       gap: 12px;
     }
 
-    @media (max-width: 820px) {
+    @media (max-width: 920px) {
       .form-grid {
         grid-template-columns: 1fr 1fr;
       }
@@ -667,9 +667,9 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="brand-mark">F</div>
+        <div class="brand-mark">C</div>
         <div>
-          <h1 class="brand-title">Folio Notes</h1>
+          <h1 class="brand-title">Cadence</h1>
           <div class="brand-sub">Smart notes &amp; reminders • AI auto-tagging</div>
         </div>
       </div>
@@ -709,8 +709,12 @@
             <input id="tag" type="text" maxlength="50" value="General" placeholder="General (Auto AI)" />
           </div>
           <div>
-            <label for="reminder_at">Reminder</label>
-            <input id="reminder_at" type="datetime-local" />
+            <label for="reminder_date">Reminder Date</label>
+            <input id="reminder_date" type="date" />
+          </div>
+          <div>
+            <label for="reminder_time">Reminder Time</label>
+            <input id="reminder_time" type="time" />
           </div>
         </div>
 
@@ -783,9 +787,15 @@
             <input id="editTag" type="text" maxlength="50" />
           </div>
         </div>
-        <div style="margin-bottom: 12px;">
-          <label for="editReminder">Reminder Date &amp; Time</label>
-          <input id="editReminder" type="datetime-local" />
+        <div class="modal-grid" style="margin-bottom: 12px;">
+          <div>
+            <label for="editReminderDate">Reminder Date</label>
+            <input id="editReminderDate" type="date" />
+          </div>
+          <div>
+            <label for="editReminderTime">Reminder Time</label>
+            <input id="editReminderTime" type="time" />
+          </div>
         </div>
         <div>
           <label for="editContent">Details</label>
@@ -806,16 +816,16 @@
     let allNotes = [];
     let currentView = "all";
 
-    let currentTheme = localStorage.getItem("folio_theme") || "dark";
-    let soundEnabled = localStorage.getItem("folio_sound_enabled") !== "false";
+    let currentTheme = localStorage.getItem("cadence_theme") || "dark";
+    let soundEnabled = localStorage.getItem("cadence_sound_enabled") !== "false";
     const alertedIds = new Set(
-      JSON.parse(sessionStorage.getItem("folio_alerted_ids") || "[]")
+      JSON.parse(sessionStorage.getItem("cadence_alerted_ids") || "[]")
     );
 
     function applyTheme(theme) {
       currentTheme = theme;
       document.documentElement.setAttribute("data-theme", theme);
-      localStorage.setItem("folio_theme", theme);
+      localStorage.setItem("cadence_theme", theme);
       const btn = document.getElementById("themeToggleBtn");
       if (btn) {
         btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
@@ -836,15 +846,30 @@
       }, 2800);
     }
 
-    function toLocalDatetimeInputValue(dateObj) {
+    function toDateInputValue(dateObj) {
       const pad = n => String(n).padStart(2, "0");
-      return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+      return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+    }
+
+    function toTimeInputValue(dateObj) {
+      const pad = n => String(n).padStart(2, "0");
+      return `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+    }
+
+    function combineDateTimeToIso(dateStr, timeStr) {
+      if (!dateStr && !timeStr) return null;
+      const finalDate = dateStr || toDateInputValue(new Date());
+      const finalTime = timeStr || "09:00";
+      const dt = new Date(`${finalDate}T${finalTime}`);
+      return Number.isNaN(dt.getTime()) ? null : dt.toISOString();
     }
 
     function setQuickReminder(preset) {
-      const input = document.getElementById("reminder_at");
+      const dateInput = document.getElementById("reminder_date");
+      const timeInput = document.getElementById("reminder_time");
       if (preset === "clear") {
-        input.value = "";
+        dateInput.value = "";
+        timeInput.value = "";
         return;
       }
       const d = new Date();
@@ -857,7 +882,8 @@
         d.setDate(d.getDate() + 1);
         d.setHours(9, 0, 0, 0);
       }
-      input.value = toLocalDatetimeInputValue(d);
+      dateInput.value = toDateInputValue(d);
+      timeInput.value = toTimeInputValue(d);
     }
 
     function getReminderStatus(note) {
@@ -1026,8 +1052,9 @@
       const content = document.getElementById("content").value.trim() || null;
       const priority = document.getElementById("priority").value;
       const tag = document.getElementById("tag").value.trim() || "General";
-      const reminderRaw = document.getElementById("reminder_at").value;
-      const reminder_at = reminderRaw ? new Date(reminderRaw).toISOString() : null;
+      const reminderDate = document.getElementById("reminder_date").value;
+      const reminderTime = document.getElementById("reminder_time").value;
+      const reminder_at = combineDateTimeToIso(reminderDate, reminderTime);
 
       try {
         const res = await fetch(`${API_BASE}/notes`, {
@@ -1071,9 +1098,9 @@
       document.getElementById("editPriority").value = note.priority || "Medium";
       document.getElementById("editTag").value = note.tag || "General";
       document.getElementById("editContent").value = note.content || "";
-      document.getElementById("editReminder").value = note.reminder_at
-        ? toLocalDatetimeInputValue(new Date(note.reminder_at))
-        : "";
+      const remObj = note.reminder_at ? new Date(note.reminder_at) : null;
+      document.getElementById("editReminderDate").value = remObj ? toDateInputValue(remObj) : "";
+      document.getElementById("editReminderTime").value = remObj ? toTimeInputValue(remObj) : "";
       document.getElementById("editModal").classList.add("open");
     }
 
@@ -1092,8 +1119,9 @@
       const priority = document.getElementById("editPriority").value;
       const tag = document.getElementById("editTag").value.trim() || "General";
       const content = document.getElementById("editContent").value.trim() || null;
-      const reminderRaw = document.getElementById("editReminder").value;
-      const reminder_at = reminderRaw ? new Date(reminderRaw).toISOString() : null;
+      const reminderDate = document.getElementById("editReminderDate").value;
+      const reminderTime = document.getElementById("editReminderTime").value;
+      const reminder_at = combineDateTimeToIso(reminderDate, reminderTime);
 
       try {
         const res = await fetch(`${API_BASE}/notes/${id}`, {
@@ -1140,7 +1168,7 @@
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      localStorage.setItem("folio_sound_enabled", String(soundEnabled));
+      localStorage.setItem("cadence_sound_enabled", String(soundEnabled));
       updateSoundButton();
       showToast(soundEnabled ? "Reminder sound enabled." : "Reminder sound muted.");
       if (soundEnabled) playReminderChime();
@@ -1182,7 +1210,7 @@
     }
 
     function saveAlertedIds() {
-      sessionStorage.setItem("folio_alerted_ids", JSON.stringify([...alertedIds]));
+      sessionStorage.setItem("cadence_alerted_ids", JSON.stringify([...alertedIds]));
     }
 
     async function triggerReminderAlert(note) {
@@ -1194,9 +1222,9 @@
 
       const canNotify = await ensureNotificationPermission();
       if (canNotify) {
-        const n = new Notification(`Folio Reminder: ${note.title}`, {
+        const n = new Notification(`Cadence Reminder: ${note.title}`, {
           body: note.content || `Tag: #${note.tag || "General"} • Priority: ${note.priority}`,
-          tag: `folio-note-${note.id}`
+          tag: `cadence-note-${note.id}`
         });
         n.onclick = () => {
           window.focus();
