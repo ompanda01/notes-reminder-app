@@ -9,13 +9,14 @@ cat << 'EOF' > ROADMAP.md
 - [x] Project documentation (`README.md`, `LICENSE`, `.gitignore`, `requirements.txt`)
 
 ## Phase 2: Web Frontend (Next)
-- [ ] Enable CORS middleware in `app/main.py`
-- [ ] Build clean responsive dashboard (`frontend/index.html`)
-- [ ] Connect create, filter, complete, and delete actions to FastAPI endpoints
+- [x] Enable CORS middleware in `app/main.py`
+- [x] Build clean responsive dashboard (`frontend/index.html`)
+- [x] Connect create, filter, complete, and delete actions to FastAPI endpoints
 - [ ] Highlight upcoming/overdue reminders in the UI
 
 ## Phase 3: Enhancements (Planned)
-- [ ] Search notes by keyword (`title` and `content`)
+- [x] Search notes by keyword (`title` and `content`)
 - [ ] Browser notifications / alert banner for due reminders
+- [x] Pin/unpin notes (`is_pinned`) with MySQL persistence and top sorting
 - [ ] Automated API tests with `pytest`
 EOF
