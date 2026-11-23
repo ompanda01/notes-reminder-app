@@ -35,6 +35,69 @@
       --radius-sm: 8px;
     }
 
+    :root[data-theme="dark"] {
+      --bg: #0b0b0c;
+      --surface: #141417;
+      --surface-subtle: #1a1a1f;
+      --border: #27272e;
+      --border-strong: #3a3a45;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent: #f4f4f5;
+      --accent-hover: #e4e4e7;
+      --emerald: #4ade80;
+      --emerald-bg: rgba(21, 128, 61, 0.18);
+      --emerald-border: rgba(74, 222, 128, 0.35);
+      --amber: #fbbf24;
+      --amber-bg: rgba(180, 83, 9, 0.2);
+      --amber-border: rgba(251, 191, 36, 0.35);
+      --rose: #fb7185;
+      --rose-bg: rgba(190, 18, 60, 0.2);
+      --rose-border: rgba(251, 113, 133, 0.35);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
+    }
+
+    :root[data-theme="dark"] .topbar {
+      background: rgba(11, 11, 12, 0.85);
+    }
+
+    :root[data-theme="dark"] button.primary {
+      color: #09090b;
+    }
+
+    :root[data-theme="dark"] .tabs {
+      background: #18181d;
+    }
+
+    :root[data-theme="dark"] .tab.active {
+      background: #27272e;
+      color: #ffffff;
+    }
+
+    :root[data-theme="dark"] input:focus,
+    :root[data-theme="dark"] textarea:focus,
+    :root[data-theme="dark"] select:focus {
+      background: #141417;
+      border-color: #f4f4f5;
+      box-shadow: 0 0 0 3px rgba(244, 244, 245, 0.12);
+    }
+
+    :root[data-theme="dark"] .card-footer {
+      border-top-color: #232329;
+    }
+
+    :root[data-theme="dark"] .toast {
+      background: #f4f4f5;
+      color: #09090b;
+    }
+
+    :root[data-theme="dark"] .toast.error {
+      background: #be123c;
+      color: #ffffff;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -86,6 +149,10 @@
       font-family: "Newsreader", Georgia, serif;
       font-size: 1.25rem;
       font-weight: 600;
+    }
+
+    :root[data-theme="dark"] .brand-mark {
+      color: #09090b;
     }
 
     .brand-title {
@@ -274,7 +341,7 @@
     }
 
     button.chip-btn:hover {
-      background: #efece4;
+      background: var(--border);
       color: var(--text-primary);
     }
 
@@ -296,7 +363,7 @@
     }
 
     button.btn-done:hover {
-      background: #dcfce7;
+      filter: brightness(0.96);
     }
 
     button.btn-danger {
@@ -324,7 +391,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      background: #ece8df;
+      background: var(--border);
       padding: 4px;
       border-radius: 10px;
     }
@@ -340,7 +407,7 @@
     }
 
     .tab:hover {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.25);
       color: var(--text-primary);
     }
 
@@ -472,7 +539,7 @@
     }
 
     .card-footer {
-      border-top: 1px solid #f0ece3;
+      border-top: 1px solid var(--border);
       padding-top: 10px;
       display: flex;
       align-items: center;
@@ -523,7 +590,7 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(28, 25, 23, 0.45);
+      background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(3px);
       display: none;
       align-items: center;
@@ -543,7 +610,7 @@
       width: 100%;
       max-width: 520px;
       padding: 22px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
     }
 
     .modal h3 {
@@ -592,6 +659,7 @@
 
     .toast.error {
       background: var(--rose);
+      color: #fff;
     }
   </style>
 </head>
@@ -610,6 +678,7 @@
         <span class="stat-pill"><strong id="statToday">0</strong> due today</span>
         <span class="stat-pill" id="statOverduePill"><strong id="statOverdue">0</strong> overdue</span>
         <button type="button" class="chip-btn" id="soundToggleBtn" onclick="toggleSound()">🔔 Sound: On</button>
+        <button type="button" class="chip-btn" id="themeToggleBtn" onclick="toggleTheme()">☀️ Light</button>
       </div>
     </div>
   </header>
@@ -737,10 +806,25 @@
     let allNotes = [];
     let currentView = "all";
 
+    let currentTheme = localStorage.getItem("folio_theme") || "dark";
     let soundEnabled = localStorage.getItem("folio_sound_enabled") !== "false";
     const alertedIds = new Set(
       JSON.parse(sessionStorage.getItem("folio_alerted_ids") || "[]")
     );
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("folio_theme", theme);
+      const btn = document.getElementById("themeToggleBtn");
+      if (btn) {
+        btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+    }
+
+    function toggleTheme() {
+      applyTheme(currentTheme === "dark" ? "light" : "dark");
+    }
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById("toast");
@@ -845,7 +929,7 @@
         checkDueReminders();
       } catch (err) {
         document.getElementById("notesList").innerHTML =
-          `<div class="empty-state" style="color:#be123c;">Could not connect to backend (${err.message}). Make sure FastAPI server is running.</div>`;
+          `<div class="empty-state" style="color:var(--rose);">Could not connect to backend (${err.message}). Make sure FastAPI server is running.</div>`;
       }
     }
 
@@ -1138,6 +1222,7 @@
       }
     }, { once: true });
 
+    applyTheme(currentTheme);
     updateSoundButton();
     setInterval(async () => {
       await loadNotes();
