@@ -3,191 +3,938 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Notes + Reminder</title>
+  <title>Folio — Smart Notes & Reminders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: #0f172a; color: #e2e8f0; padding: 24px; }
-    .container { max-width: 960px; margin: 0 auto; }
-    h1 { margin: 0 0 6px; font-size: 1.8rem; }
-    .subtitle { color: #94a3b8; margin-bottom: 24px; font-size: 0.95rem; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    label { display: block; font-size: 0.82rem; color: #cbd5e1; margin-bottom: 4px; }
-    input, textarea, select, button {
-      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #475569;
-      background: #0f172a; color: #f8fafc; font-size: 0.92rem;
+    :root {
+      --bg: #f6f4ef;
+      --surface: #ffffff;
+      --surface-subtle: #fbfaf7;
+      --border: #e4dfd5;
+      --border-strong: #cfc8ba;
+      --text-primary: #1c1917;
+      --text-secondary: #57534e;
+      --text-muted: #8a837a;
+      --accent: #18181b;
+      --accent-hover: #27272a;
+      --emerald: #15803d;
+      --emerald-bg: #f0fdf4;
+      --emerald-border: #bbf7d0;
+      --amber: #b45309;
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --rose: #be123c;
+      --rose-bg: #fff1f2;
+      --rose-border: #fecdd3;
+      --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
+      --shadow-md: 0 6px 20px rgba(28, 25, 23, 0.06);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
     }
-    textarea { min-height: 76px; resize: vertical; }
-    button { cursor: pointer; font-weight: 600; transition: 0.15s ease; }
-    button.primary { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-    button.primary:hover { background: #2563eb; }
-    button.secondary { background: #334155; }
-    button.secondary:hover { background: #475569; }
-    button.danger { background: #dc2626; border-color: #dc2626; color: #fff; }
-    button.danger:hover { background: #b91c1c; }
-    button.success { background: #16a34a; border-color: #16a34a; color: #fff; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-    .filters select, .filters button { width: auto; padding: 8px 12px; }
-    .note-item {
-      background: #0f172a; border: 1px solid #334155; border-radius: 10px;
-      padding: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 12px;
+
+    * {
+      box-sizing: border-box;
     }
-    .note-item.completed { opacity: 0.65; }
-    .note-item.completed .note-title { text-decoration: line-through; }
-    .note-title { font-size: 1.05rem; font-weight: 600; margin: 0 0 6px; }
-    .note-content { color: #cbd5e1; font-size: 0.9rem; margin: 0 0 8px; white-space: pre-wrap; }
-    .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.78rem; color: #94a3b8; }
-    .badge { padding: 2px 8px; border-radius: 999px; background: #1e293b; border: 1px solid #475569; color: #e2e8f0; }
-    .badge.High { border-color: #ef4444; color: #fca5a5; }
-    .badge.Medium { border-color: #f59e0b; color: #fcd34d; }
-    .badge.Low { border-color: #22c55e; color: #86efac; }
-    .actions { display: flex; flex-direction: column; gap: 6px; min-width: 110px; }
-    .actions button { padding: 6px 10px; font-size: 0.82rem; }
-    .status-msg { margin-top: 10px; font-size: 0.88rem; color: #93c5fd; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+
+    /* Top Header */
+    .topbar {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-family: "Newsreader", Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .brand-title {
+      font-family: "Newsreader", Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .stats-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .stat-pill strong {
+      color: var(--text-primary);
+    }
+
+    .stat-pill.overdue-alert {
+      background: var(--rose-bg);
+      border-color: var(--rose-border);
+      color: var(--rose);
+    }
+
+    /* Layout */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+
+    /* Composer Card */
+    .composer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+
+    .composer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .composer-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .ai-hint {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.3fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 820px) {
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      background: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.08);
+    }
+
+    textarea {
+      min-height: 68px;
+      resize: vertical;
+    }
+
+    .composer-bottom {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .quick-times {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .quick-times span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background: var(--surface-subtle);
+      border-color: var(--border-strong);
+    }
+
+    button.chip-btn {
+      padding: 4px 10px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      border-radius: 999px;
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+    }
+
+    button.chip-btn:hover {
+      background: #efece4;
+      color: var(--text-primary);
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      padding: 9px 18px;
+    }
+
+    button.primary:hover {
+      background: var(--accent-hover);
+    }
+
+    button.btn-done {
+      background: var(--emerald-bg);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+
+    button.btn-done:hover {
+      background: #dcfce7;
+    }
+
+    button.btn-danger {
+      color: var(--rose);
+      border-color: transparent;
+      background: transparent;
+    }
+
+    button.btn-danger:hover {
+      background: var(--rose-bg);
+      border-color: var(--rose-border);
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: #ece8df;
+      padding: 4px;
+      border-radius: 10px;
+    }
+
+    .tab {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .tab:hover {
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-filters input {
+      width: 190px;
+      background: var(--surface);
+      padding: 7px 11px;
+      font-size: 0.84rem;
+    }
+
+    .search-filters select {
+      width: auto;
+      background: var(--surface);
+      padding: 7px 10px;
+      font-size: 0.84rem;
+    }
+
+    /* Notes Grid */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 14px;
+    }
+
+    .note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .note-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+    }
+
+    .note-card.is-overdue {
+      border-left: 3px solid var(--rose);
+    }
+
+    .note-card.completed {
+      opacity: 0.65;
+      background: var(--surface-subtle);
+    }
+
+    .note-card.completed .note-title {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+    }
+
+    .badge.High {
+      background: var(--rose-bg);
+      border-color: var(--rose-border);
+      color: var(--rose);
+    }
+
+    .badge.Medium {
+      background: var(--amber-bg);
+      border-color: var(--amber-border);
+      color: var(--amber);
+    }
+
+    .badge.Low {
+      background: var(--emerald-bg);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+
+    .note-title {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin: 0 0 6px;
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .note-content {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-footer {
+      border-top: 1px solid #f0ece3;
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .reminder-tag {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .reminder-tag.overdue {
+      color: var(--rose);
+      font-weight: 600;
+    }
+
+    .reminder-tag.today {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-actions button {
+      padding: 5px 9px;
+      font-size: 0.78rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      background: var(--surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 25, 23, 0.45);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      padding: 22px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
+    }
+
+    .modal h3 {
+      margin: 0 0 14px;
+      font-family: "Newsreader", Georgia, serif;
+      font-size: 1.3rem;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 60;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background: var(--rose);
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Smart Notes + Reminder</h1>
-    <div class="subtitle">FastAPI + MySQL UI • Auto priority & tag powered by AI helper</div>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div>
+          <h1 class="brand-title">Folio Notes</h1>
+          <div class="brand-sub">Smart notes &amp; reminders • AI auto-tagging</div>
+        </div>
+      </div>
+      <div class="stats-strip" id="statsStrip">
+        <span class="stat-pill"><strong id="statPending">0</strong> pending</span>
+        <span class="stat-pill"><strong id="statToday">0</strong> due today</span>
+        <span class="stat-pill" id="statOverduePill"><strong id="statOverdue">0</strong> overdue</span>
+        <button type="button" class="chip-btn" id="soundToggleBtn" onclick="toggleSound()">🔔 Sound: On</button>
+      </div>
+    </div>
+  </header>
 
-    <div class="card">
-      <h3 style="margin-top:0;">Create Note / Reminder</h3>
+  <main class="container">
+    <!-- Quick Capture Composer -->
+    <section class="composer">
+      <div class="composer-header">
+        <h2 class="composer-title">New Note or Reminder</h2>
+        <span class="ai-hint">AI auto-assigns priority &amp; tag when left default</span>
+      </div>
       <form id="noteForm">
-        <div class="grid">
+        <div class="form-grid">
           <div>
             <label for="title">Title *</label>
-            <input id="title" type="text" required maxlength="150" placeholder="e.g., Pay electricity bill" />
+            <input id="title" type="text" required maxlength="150" placeholder="e.g., Pay electricity bill or review API PR" />
           </div>
           <div>
             <label for="priority">Priority</label>
             <select id="priority">
-              <option value="Medium" selected>Medium (Auto AI if Medium)</option>
+              <option value="Medium" selected>Medium (Auto AI)</option>
               <option value="High">High</option>
               <option value="Low">Low</option>
             </select>
           </div>
           <div>
             <label for="tag">Tag</label>
-            <input id="tag" type="text" maxlength="50" value="General" placeholder="General (Auto AI if General)" />
+            <input id="tag" type="text" maxlength="50" value="General" placeholder="General (Auto AI)" />
           </div>
           <div>
-            <label for="reminder_at">Reminder Date & Time</label>
+            <label for="reminder_at">Reminder</label>
             <input id="reminder_at" type="datetime-local" />
           </div>
         </div>
-        <div style="margin-top:12px;">
-          <label for="content">Content</label>
-          <textarea id="content" placeholder="Optional details..."></textarea>
+
+        <div style="margin-top: 12px;">
+          <label for="content">Details</label>
+          <textarea id="content" placeholder="Write additional context, links, or checklist items..."></textarea>
         </div>
-        <div style="margin-top:12px; max-width:220px;">
+
+        <div class="composer-bottom">
+          <div class="quick-times">
+            <span>Quick set:</span>
+            <button type="button" class="chip-btn" onclick="setQuickReminder('1h')">+1 Hour</button>
+            <button type="button" class="chip-btn" onclick="setQuickReminder('tonight')">Tonight 8 PM</button>
+            <button type="button" class="chip-btn" onclick="setQuickReminder('tomorrow')">Tomorrow 9 AM</button>
+            <button type="button" class="chip-btn" onclick="setQuickReminder('clear')">Clear</button>
+          </div>
           <button type="submit" class="primary">Save Note</button>
         </div>
-        <div id="statusMsg" class="status-msg"></div>
       </form>
-    </div>
+    </section>
 
-    <div class="card">
-      <div class="toolbar">
-        <h3 style="margin:0;">Notes & Reminders</h3>
-        <div class="filters">
-          <select id="filterPriority">
-            <option value="">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-          <select id="filterCompleted">
-            <option value="">All Status</option>
-            <option value="false">Pending</option>
-            <option value="true">Completed</option>
-          </select>
-          <input id="filterTag" type="text" placeholder="Filter tag..." style="width:130px; padding:8px 10px;" />
-          <button type="button" class="secondary" onclick="loadNotes()">Apply</button>
-          <button type="button" class="secondary" onclick="loadUpcomingReminders()">Upcoming (24h)</button>
-        </div>
+    <!-- View Tabs & Filters -->
+    <section class="controls-bar">
+      <div class="tabs" id="viewTabs">
+        <button type="button" class="tab active" data-view="all">All</button>
+        <button type="button" class="tab" data-view="today">Today</button>
+        <button type="button" class="tab" data-view="overdue">Overdue</button>
+        <button type="button" class="tab" data-view="upcoming">Next 24h</button>
+        <button type="button" class="tab" data-view="completed">Completed</button>
       </div>
-      <div id="notesList">Loading...</div>
+
+      <div class="search-filters">
+        <input id="searchInput" type="text" placeholder="Search title, note, #tag..." oninput="renderCurrentView()" />
+        <select id="filterPriority" onchange="renderCurrentView()">
+          <option value="">All Priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Notes Grid -->
+    <section class="notes-grid" id="notesList">
+      <div class="empty-state">Loading your notes...</div>
+    </section>
+  </main>
+
+  <!-- Edit Note Modal -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal">
+      <h3>Edit Note</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId" />
+        <div style="margin-bottom: 12px;">
+          <label for="editTitle">Title *</label>
+          <input id="editTitle" type="text" required maxlength="150" />
+        </div>
+        <div class="modal-grid">
+          <div>
+            <label for="editPriority">Priority</label>
+            <select id="editPriority">
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label for="editTag">Tag</label>
+            <input id="editTag" type="text" maxlength="50" />
+          </div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label for="editReminder">Reminder Date &amp; Time</label>
+          <input id="editReminder" type="datetime-local" />
+        </div>
+        <div>
+          <label for="editContent">Details</label>
+          <textarea id="editContent"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="primary">Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
     const API_BASE = window.location.origin;
+    let allNotes = [];
+    let currentView = "all";
 
-    function setStatus(msg, isError = false) {
-      const el = document.getElementById("statusMsg");
-      el.textContent = msg;
-      el.style.color = isError ? "#fca5a5" : "#93c5fd";
+    let soundEnabled = localStorage.getItem("folio_sound_enabled") !== "false";
+    const alertedIds = new Set(
+      JSON.parse(sessionStorage.getItem("folio_alerted_ids") || "[]")
+    );
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = `toast show ${isError ? "error" : ""}`;
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2800);
+    }
+
+    function toLocalDatetimeInputValue(dateObj) {
+      const pad = n => String(n).padStart(2, "0");
+      return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+    }
+
+    function setQuickReminder(preset) {
+      const input = document.getElementById("reminder_at");
+      if (preset === "clear") {
+        input.value = "";
+        return;
+      }
+      const d = new Date();
+      if (preset === "1h") {
+        d.setHours(d.getHours() + 1);
+      } else if (preset === "tonight") {
+        d.setHours(20, 0, 0, 0);
+        if (d <= new Date()) d.setDate(d.getDate() + 1);
+      } else if (preset === "tomorrow") {
+        d.setDate(d.getDate() + 1);
+        d.setHours(9, 0, 0, 0);
+      }
+      input.value = toLocalDatetimeInputValue(d);
+    }
+
+    function getReminderStatus(note) {
+      if (!note.reminder_at) return { type: "none", label: "No reminder" };
+      const rem = new Date(note.reminder_at);
+      const now = new Date();
+      const formatted = rem.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      if (note.is_completed) {
+        return { type: "done", label: `Scheduled: ${formatted}` };
+      }
+      if (rem < now) {
+        return { type: "overdue", label: `Overdue • ${formatted}` };
+      }
+      const isToday =
+        rem.getFullYear() === now.getFullYear() &&
+        rem.getMonth() === now.getMonth() &&
+        rem.getDate() === now.getDate();
+
+      if (isToday) {
+        return { type: "today", label: `Today • ${rem.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` };
+      }
+      return { type: "future", label: formatted };
+    }
+
+    function updateStats() {
+      const now = new Date();
+      let pending = 0;
+      let today = 0;
+      let overdue = 0;
+
+      allNotes.forEach(n => {
+        if (!n.is_completed) {
+          pending++;
+          if (n.reminder_at) {
+            const rem = new Date(n.reminder_at);
+            if (rem < now) overdue++;
+            else if (
+              rem.getFullYear() === now.getFullYear() &&
+              rem.getMonth() === now.getMonth() &&
+              rem.getDate() === now.getDate()
+            ) {
+              today++;
+            }
+          }
+        }
+      });
+
+      document.getElementById("statPending").textContent = pending;
+      document.getElementById("statToday").textContent = today;
+      document.getElementById("statOverdue").textContent = overdue;
+
+      const overduePill = document.getElementById("statOverduePill");
+      overduePill.classList.toggle("overdue-alert", overdue > 0);
     }
 
     async function loadNotes() {
-      const priority = document.getElementById("filterPriority").value;
-      const isCompleted = document.getElementById("filterCompleted").value;
-      const tag = document.getElementById("filterTag").value.trim();
-
-      const params = new URLSearchParams();
-      if (priority) params.append("priority", priority);
-      if (isCompleted !== "") params.append("is_completed", isCompleted);
-      if (tag) params.append("tag", tag);
-
-      const url = `${API_BASE}/notes${params.toString() ? "?" + params.toString() : ""}`;
       try {
-        const res = await fetch(url);
+        const res = await fetch(`${API_BASE}/notes`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const notes = await res.json();
-        renderNotes(notes);
+        allNotes = await res.json();
+        updateStats();
+        renderCurrentView();
+        checkDueReminders();
       } catch (err) {
         document.getElementById("notesList").innerHTML =
-          `<p style="color:#fca5a5;">Backend cannot connect  (${err.message}). Check if uvicorn is running or not.</p>`;
+          `<div class="empty-state" style="color:#be123c;">Could not connect to backend (${err.message}). Make sure FastAPI server is running.</div>`;
       }
     }
 
-    async function loadUpcomingReminders() {
-      try {
-        const res = await fetch(`${API_BASE}/reminders/upcoming?within_hours=24`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const notes = await res.json();
-        renderNotes(notes, "Upcoming reminders (next 24h):");
-      } catch (err) {
-        setStatus(`Error loading reminders: ${err.message}`, true);
-      }
-    }
+    function renderCurrentView() {
+      const search = document.getElementById("searchInput").value.trim().toLowerCase();
+      const priorityFilter = document.getElementById("filterPriority").value;
+      const now = new Date();
+      const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-    function renderNotes(notes, headingPrefix = "") {
+      const filtered = allNotes.filter(note => {
+        if (currentView === "completed" && !note.is_completed) return false;
+        if (currentView !== "completed" && currentView !== "all" && note.is_completed) return false;
+
+        if (currentView === "today") {
+          if (!note.reminder_at) return false;
+          const rem = new Date(note.reminder_at);
+          const sameDay =
+            rem.getFullYear() === now.getFullYear() &&
+            rem.getMonth() === now.getMonth() &&
+            rem.getDate() === now.getDate();
+          if (!sameDay) return false;
+        }
+
+        if (currentView === "overdue") {
+          if (!note.reminder_at || new Date(note.reminder_at) >= now) return false;
+        }
+
+        if (currentView === "upcoming") {
+          if (!note.reminder_at) return false;
+          const rem = new Date(note.reminder_at);
+          if (rem < now || rem > next24h) return false;
+        }
+
+        if (priorityFilter && note.priority !== priorityFilter) return false;
+
+        if (search) {
+          const hay = `${note.title} ${note.content || ""} ${note.tag || ""}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+
+        return true;
+      });
+
       const container = document.getElementById("notesList");
-      if (!notes.length) {
-        container.innerHTML = `<p style="color:#94a3b8;">${headingPrefix ? headingPrefix + " " : ""}Koi notes nahi mile.</p>`;
+      if (!filtered.length) {
+        container.innerHTML = `<div class="empty-state">No matching notes in this view. Try switching tabs or creating a new note above.</div>`;
         return;
       }
 
-      const headerHtml = headingPrefix ? `<p style="color:#93c5fd; margin-top:0;">${headingPrefix}</p>` : "";
-      container.innerHTML = headerHtml + notes.map(note => {
-        const reminderText = note.reminder_at
-          ? `Reminder: ${new Date(note.reminder_at).toLocaleString()}`
-          : "No reminder";
+      container.innerHTML = filtered.map(note => {
+        const remStatus = getReminderStatus(note);
+        const isOverdueCard = remStatus.type === "overdue" && !note.is_completed;
 
         return `
-          <div class="note-item ${note.is_completed ? "completed" : ""}">
+          <article class="note-card ${note.is_completed ? "completed" : ""} ${isOverdueCard ? "is-overdue" : ""}">
             <div>
-              <h4 class="note-title">${escapeHtml(note.title)}</h4>
+              <div class="card-top">
+                <div class="badge-group">
+                  <span class="badge ${escapeHtml(note.priority)}">${escapeHtml(note.priority)}</span>
+                  <span class="badge">#${escapeHtml(note.tag || "General")}</span>
+                </div>
+              </div>
+              <h3 class="note-title">${escapeHtml(note.title)}</h3>
               ${note.content ? `<p class="note-content">${escapeHtml(note.content)}</p>` : ""}
-              <div class="meta">
-                <span class="badge ${note.priority}">${note.priority}</span>
-                <span class="badge">#${escapeHtml(note.tag || "General")}</span>
-                <span>${reminderText}</span>
+            </div>
+
+            <div class="card-footer">
+              <span class="reminder-tag ${remStatus.type}">${remStatus.label}</span>
+              <div class="card-actions">
+                <button type="button" class="${note.is_completed ? "" : "btn-done"}" onclick="toggleComplete(${note.id}, ${!note.is_completed})">
+                  ${note.is_completed ? "Reopen" : "Done"}
+                </button>
+                <button type="button" onclick="openEditModal(${note.id})">Edit</button>
+                <button type="button" class="btn-danger" onclick="deleteNote(${note.id})">Delete</button>
               </div>
             </div>
-            <div class="actions">
-              <button class="${note.is_completed ? "secondary" : "success"}" onclick="toggleComplete(${note.id}, ${!note.is_completed})">
-                ${note.is_completed ? "Undo" : "Done"}
-              </button>
-              <button class="danger" onclick="deleteNote(${note.id})">Delete</button>
-            </div>
-          </div>
+          </article>
         `;
       }).join("");
     }
+
+    document.getElementById("viewTabs").addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab");
+      if (!btn) return;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+      currentView = btn.dataset.view;
+      renderCurrentView();
+    });
 
     document.getElementById("noteForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -210,10 +957,10 @@
         }
         e.target.reset();
         document.getElementById("tag").value = "General";
-        setStatus("Note saved successfully.");
+        showToast("Note saved successfully.");
         loadNotes();
       } catch (err) {
-        setStatus(`Create failed: ${err.message}`, true);
+        showToast(`Create failed: ${err.message}`, true);
       }
     });
 
@@ -225,20 +972,70 @@
           body: JSON.stringify({ is_completed: nextState })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showToast(nextState ? "Marked as completed." : "Note reopened.");
         loadNotes();
       } catch (err) {
-        setStatus(`Update failed: ${err.message}`, true);
+        showToast(`Update failed: ${err.message}`, true);
       }
     }
+
+    function openEditModal(id) {
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      document.getElementById("editId").value = note.id;
+      document.getElementById("editTitle").value = note.title;
+      document.getElementById("editPriority").value = note.priority || "Medium";
+      document.getElementById("editTag").value = note.tag || "General";
+      document.getElementById("editContent").value = note.content || "";
+      document.getElementById("editReminder").value = note.reminder_at
+        ? toLocalDatetimeInputValue(new Date(note.reminder_at))
+        : "";
+      document.getElementById("editModal").classList.add("open");
+    }
+
+    function closeEditModal() {
+      document.getElementById("editModal").classList.remove("open");
+    }
+
+    document.getElementById("editModal").addEventListener("click", (e) => {
+      if (e.target.id === "editModal") closeEditModal();
+    });
+
+    document.getElementById("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("editId").value;
+      const title = document.getElementById("editTitle").value.trim();
+      const priority = document.getElementById("editPriority").value;
+      const tag = document.getElementById("editTag").value.trim() || "General";
+      const content = document.getElementById("editContent").value.trim() || null;
+      const reminderRaw = document.getElementById("editReminder").value;
+      const reminder_at = reminderRaw ? new Date(reminderRaw).toISOString() : null;
+
+      try {
+        const res = await fetch(`${API_BASE}/notes/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, priority, tag, content, reminder_at })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        alertedIds.delete(Number(id));
+        saveAlertedIds();
+        closeEditModal();
+        showToast("Note updated.");
+        loadNotes();
+      } catch (err) {
+        showToast(`Edit failed: ${err.message}`, true);
+      }
+    });
 
     async function deleteNote(id) {
       try {
         const res = await fetch(`${API_BASE}/notes/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setStatus("Note delete ho gaya.");
+        showToast("Note deleted.");
         loadNotes();
       } catch (err) {
-        setStatus(`Delete failed: ${err.message}`, true);
+        showToast(`Delete failed: ${err.message}`, true);
       }
     }
 
@@ -249,6 +1046,103 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
     }
+
+    // Reminder Notification + Chime Watcher
+    function updateSoundButton() {
+      const btn = document.getElementById("soundToggleBtn");
+      if (!btn) return;
+      btn.textContent = soundEnabled ? "🔔 Sound: On" : "🔕 Sound: Off";
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem("folio_sound_enabled", String(soundEnabled));
+      updateSoundButton();
+      showToast(soundEnabled ? "Reminder sound enabled." : "Reminder sound muted.");
+      if (soundEnabled) playReminderChime();
+    }
+
+    function playReminderChime() {
+      if (!soundEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        [587.33, 880].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+          gain.gain.setValueAtTime(0.001, now + idx * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.12, now + idx * 0.16 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.16 + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.16);
+          osc.stop(now + idx * 0.16 + 0.48);
+        });
+      } catch (_) {
+        // AudioContext may wait until first user interaction
+      }
+    }
+
+    async function ensureNotificationPermission() {
+      if (!("Notification" in window)) return false;
+      if (Notification.permission === "granted") return true;
+      if (Notification.permission !== "denied") {
+        const perm = await Notification.requestPermission();
+        return perm === "granted";
+      }
+      return false;
+    }
+
+    function saveAlertedIds() {
+      sessionStorage.setItem("folio_alerted_ids", JSON.stringify([...alertedIds]));
+    }
+
+    async function triggerReminderAlert(note) {
+      alertedIds.add(note.id);
+      saveAlertedIds();
+
+      playReminderChime();
+      showToast(`⏰ Reminder: ${note.title}`);
+
+      const canNotify = await ensureNotificationPermission();
+      if (canNotify) {
+        const n = new Notification(`Folio Reminder: ${note.title}`, {
+          body: note.content || `Tag: #${note.tag || "General"} • Priority: ${note.priority}`,
+          tag: `folio-note-${note.id}`
+        });
+        n.onclick = () => {
+          window.focus();
+          n.close();
+        };
+      }
+    }
+
+    function checkDueReminders() {
+      const now = new Date();
+      allNotes.forEach(note => {
+        if (note.is_completed || !note.reminder_at) return;
+        const rem = new Date(note.reminder_at);
+        if (rem <= now && !alertedIds.has(note.id)) {
+          triggerReminderAlert(note);
+        }
+      });
+    }
+
+    document.addEventListener("click", () => {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+    }, { once: true });
+
+    updateSoundButton();
+    setInterval(async () => {
+      await loadNotes();
+      checkDueReminders();
+    }, 30000);
 
     loadNotes();
   </script>
